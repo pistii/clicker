@@ -1,0 +1,77 @@
+{
+  "format": 1,
+  "restore": {
+    "I:\\ClickerProject\\Clicker\\Kattolgatos\\Kattolgatos.csproj": {}
+  },
+  "projects": {
+    "I:\\ClickerProject\\Clicker\\Kattolgatos\\Kattolgatos.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "I:\\ClickerProject\\Clicker\\Kattolgatos\\Kattolgatos.csproj",
+        "projectName": "Kattolgatos",
+        "projectPath": "I:\\ClickerProject\\Clicker\\Kattolgatos\\Kattolgatos.csproj",
+        "packagesPath": "C:\\Users\\Killakikitt\\.nuget\\packages\\",
+        "outputPath": "I:\\ClickerProject\\Clicker\\Kattolgatos\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "fallbackFolders": [
+          "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Killakikitt\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net48"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net48": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net48": {
+          "dependencies": {
+            "Emgu.CV": {
+              "target": "Package",
+              "version": "[4.7.0.5276, )"
+            },
+            "Emgu.CV.Bitmap": {
+              "target": "Package",
+              "version": "[4.7.0.5276, )"
+            },
+            "GameOverlay.Net": {
+              "target": "Package",
+              "version": "[4.3.1, )"
+            },
+            "NHotkey.WindowsForms": {
+              "target": "Package",
+              "version": "[2.1.1, )"
+            },
+            "OpenCV.Net": {
+              "target": "Package",
+              "version": "[3.4.1, )"
+            }
+          }
+        }
+      },
+      "runtimes": {
+        "win": {
+          "#import": []
+        },
+        "win-x64": {
+          "#import": []
+        },
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
