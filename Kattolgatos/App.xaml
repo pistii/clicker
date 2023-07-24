@@ -2,8 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Kattolgatos"
-             StartupUri="MainWindow.xaml">
+             xmlns:viewmodels="clr-namespace:Kattolgatos.ViewModels"
+             StartupUri="/MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary Source="/Resources/DataResource.xaml" />
     </Application.Resources>
 </Application>

@@ -61,7 +61,7 @@
     <ManifestKeyFile>Kattolgatos_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
+    <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
@@ -117,17 +117,35 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="MovableGraphicsArgs.cs" />
-    <Compile Include="ScreenCapture.cs" />
-    <Compile Include="KeyCodes.cs" />
-    <Compile Include="MainWindow_old.xaml.cs">
-      <DependentUpon>MainWindow_old.xaml</DependentUpon>
+    <Compile Include="Data\User32.cs" />
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RectangleOverlay.cs" />
-    <Compile Include="SelectProcess.xaml.cs">
-      <DependentUpon>SelectProcess.xaml</DependentUpon>
+    <Compile Include="Overlay\OverlayExample.cs" />
+    <Compile Include="ViewModels\EnergiaFarmViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\PecaViewmodel.cs" />
+    <Compile Include="Views\EnergiaView.xaml.cs">
+      <DependentUpon>EnergiaView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ScreenShot\SchreenshotHelper.cs" />
+    <Compile Include="ScreenShot\ScreenCapture.cs" />
+    <Compile Include="Data\KeyCodes.cs" />
+    <Compile Include="Overlay\RectangleOverlay.cs" />
+    <Compile Include="ScreenShot\Screenshot.cs" />
     <Page Include="MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\DataResource.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EnergiaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PecaView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -135,18 +153,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="Views\PecaView.xaml.cs">
+      <DependentUpon>PecaView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MainWindow_old.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="SelectProcess.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -229,6 +239,9 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm">
+      <Version>8.2.1</Version>
+    </PackageReference>
     <PackageReference Include="Emgu.CV">
       <Version>4.7.0.5276</Version>
     </PackageReference>
@@ -241,6 +254,12 @@
     <PackageReference Include="GameOverlay.Net">
       <Version>4.3.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>7.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="MouseKeyHook">
+      <Version>5.7.1</Version>
+    </PackageReference>
     <PackageReference Include="NHotkey.WindowsForms">
       <Version>2.1.1</Version>
     </PackageReference>
@@ -249,29 +268,123 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="img\fish2.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="minifish.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="img\minifish.jpg">
+    <None Include="Resources\img\smallFish.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="img\i_shape.png" />
+    <Resource Include="Resources\img\smallFish2.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="img\without.jpg">
+    <None Include="Resources\img\justFish.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Resource Include="img\with.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="img\smallFish.jpg">
+    <Resource Include="Resources\img\fogas.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\fogas1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\mandarinhal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\ponty.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\sullo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\tenchi.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\img\vorosszarnyu.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\fogas.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\fogas1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\justFish.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\mandarinhal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\ponty.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\smallFish.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\smallFish2.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\sullo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\tenchi.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\vorosszarnyu.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\img\pisztrang.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\pisztrang.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\img\harcsa.png" />
+    <Resource Include="Resources\img\sebes.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\harcsa.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\img\data\sebes.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\img\data\sullo1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\img\tor1.jpg" />
+    <Resource Include="Resources\img\tor2.jpg" />
+    <Content Include="Resources\sound\alarm.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
