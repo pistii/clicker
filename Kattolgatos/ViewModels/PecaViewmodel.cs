@@ -24,7 +24,8 @@
     using CommunityToolkit.Mvvm.Input;
     using static Kattolgatos.Data.User32;
     using InputType = Data.User32.InputType;
-    using System.Runtime.InteropServices;
+    using System.Windows.Media.Media3D;
+    using OpenCV.Net;
 
     //TODO:
     //tip: hasonlítsa össze az élő halat a döglöttel hallal és ha az jobban stimmel akkor ne nyissa
@@ -33,9 +34,8 @@
     //play sound for a specific time
     //possibility for fishing with fishbook
     //read bait quantity by pic
-    //inventory location 
     //bug with the overlay, doesn't exactly clicks into the rect size. Possible solution is to store at only one place 
-
+    //amur and lazac as clickeable single property
     public class PecaViewmodel : ObservableObject
     {
         //PC-n 7 - 7 - 8 + 15 - 7 + 120
@@ -47,7 +47,7 @@
         //The rect displayed on the screen
         static GameOverlay.Drawing.Rectangle rectangle = new GameOverlay.Drawing.Rectangle(rectLeft, rectTop, rectRight, rectBottom);
         private readonly RectangleOverlay overlay = new RectangleOverlay(rectangle);
-        private string _textbox = "#345E81";
+        private string fishColor = "#345E81";
         private int _ID;
         private int _delay = 0;
         public ushort[] coord;
@@ -57,9 +57,6 @@
         //duration of the fishing
         long duration = 22 * 1000; //20 mp
 
-        //Props for the minifish item detection
-        int fullWidth = SystemInformation.VirtualScreen.Width / 2;
-        int fullHeight = (int)(SystemInformation.VirtualScreen.Height / 1.5);
         ScreenCapture screenCapture;
         Rectangle rectOfInventory;
 
@@ -99,10 +96,10 @@
         }
         public string TextBox
         {
-            get { return _textbox; }
+            get { return fishColor; }
             set
             {
-                _textbox = value;
+                fishColor = value;
             }
         }
 
@@ -125,13 +122,7 @@
             OnButtonStartFishing = new RelayCommand(ButtonStartFishing);
             OnButtonSetRectangle = new RelayCommand(ButtonSetRectangle);
             screenCapture = new ScreenCapture();
-            rectOfInventory = new Rectangle()
-            {
-                X = 0,//1195, //SystemInformation.VirtualScreen.Height / 2,
-                Y = 0,//745, //(int) (SystemInformation.VirtualScreen.Height / 1.5),
-                Height = SystemInformation.VirtualScreen.Height,
-                Width = SystemInformation.VirtualScreen.Width
-            };
+            
             currentPressBtn = "F1";
             keystroke = DirectXKeyStrokes.DIK_F1;
             currentQuantity = TextBoxF1;
@@ -219,7 +210,7 @@
             {
                 Point point = new Point(x, y);
 
-                if (ColorsAreClose(GetColorAt(point), ColorTranslator.FromHtml(_textbox)))
+                if (ColorsAreClose(GetColorAt(point), ColorTranslator.FromHtml(fishColor)))
                     Click();
             }
             else
@@ -255,9 +246,9 @@
             return (r * r + g * g + b * b) <= threshold * threshold;
         }
 
-        private bool SearchPixel(string hexcode)
+        private bool SearchPixel()
         {
-            using (Bitmap bitmap = new Bitmap(550, 350))
+            using (Bitmap bitmap = new Bitmap(550, 350)) //550, 350
             {
                 try
                 {
@@ -267,15 +258,13 @@
                         //Screenshot moment screen content to graphics obj
                         if (bitmap != null)
                         {
-                            graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
+                            graphics.CopyFromScreen(0,0,0,0,bitmap.Size);
                         }
                     }
 
-                    Color desiredPixelColor = ColorTranslator.FromHtml(hexcode);
+                    Color desiredPixelColor = ColorTranslator.FromHtml(fishColor);
 
                     int rgb = desiredPixelColor.ToArgb();
-                    uint.TryParse(rgb.ToString(), out uint color);
-
                     for (int x = (int)rectangle.Left; x < rectangle.Right; x++)
                     {
                         for (int y = (int)rectangle.Top; y < rectangle.Bottom; y++)
@@ -298,45 +287,70 @@
 
         }
 
-
+        /// <summary>
+        /// This is the middle playground area,
+        /// Doesn't have to check the this for opening fishes
+        /// </summary>
+        Rectangle notInventory;
         private void StartFishing()
         {
             Process p = Process.GetProcessById(ID);
             IntPtr h = p.MainWindowHandle;
             Stopwatch stopwatch = new Stopwatch();
             int fishOpenTimes = -1;
-
-
+            bool hasInventory = false;
+            int bottomPadding = 60; //the money and icons in the right left corner height in pixels
+            Rectangle inventorySize = new Rectangle() { //size in 768x1024
+                Width = 175,
+                Height = 345
+            };
 
             //Run task in the background
             Task.Run(() =>
             {
-                while (fishing)
+            while (fishing)
+            {
+                if (GetForegroundWindow() != h)
                 {
-                    if (GetForegroundWindow() != h)
+                    SetForegroundWindow(h);
+                    Thread.Sleep(300);
+                    if (!hasInventory)
                     {
-                        SetForegroundWindow(h);
-                        Thread.Sleep(300);
-
-                        Rectangle myRect = new Rectangle();
-
-                        RECT rct;
-
-                        if (!GetWindowRect(new HandleRef(this, p.Handle), out rct))
+                        RECT rect = new RECT();
+                        var d = GetWindowRect(h, out rect);
+                        if (d) //if has size
                         {
-                            MessageBox.Show("ERROR");
-                            return;
+                            rectOfInventory = new Rectangle()
+                            {
+                                X = rect.Right - inventorySize.Width,
+                                Width = rect.Right,
+                                Y = rect.Bottom - bottomPadding - inventorySize.Height,
+                                Height = rectOfInventory.Y + inventorySize.Height,
+                            };
+                            notInventory = new Rectangle()
+                            {
+                                X = rect.Left,
+                                Width = (ushort) (rect.Right - inventorySize.Width),
+                                Y = rect.Top,
+                                Height = rect.Top + inventorySize.Top + inventorySize.Height
+                            };
+                            hasInventory = true;
                         }
-                        myRect.X = rct.Left;
-                        myRect.Y = rct.Top;
-                        myRect.Width = rct.Right - rct.Left;
-                        myRect.Height = rct.Bottom - rct.Top;
-                        MessageBox.Show(myRect.X.ToString(), myRect.Y.ToString());
+                        else
+                        { //set search area fullscreen
+                            rectOfInventory = new Rectangle()
+                            {
+                                X = 0,
+                                Width = SystemInformation.VirtualScreen.Width,
+                                Y = 0,
+                                Height = SystemInformation.VirtualScreen.Height,
+                            };
+                        }
                     }
-
-                    if (fishOpenTimes <= -1 || fishOpenTimes >= 3)
+                }
+                    if (fishOpenTimes <= -1 || fishOpenTimes >= 1)
                     {
-                        OpenFishesIfSelected();
+                        Task.WaitAll(OpenFishesIfSelected());
                         if (PMChkBox) CheckPM(); // Alerts
                         if (ChkTrade) //CheckTrade(); //Alerts
                         fishOpenTimes = 0;
@@ -348,7 +362,6 @@
                         PlaceBaitOnRod(keystroke);
                         Thread.Sleep(250);
                         StartToFish();
-
                     }
                     else
                     {
@@ -358,7 +371,7 @@
                         {
                             while (placedBaitAndStartedFishing)
                             {
-                                SearchPixel(_textbox);
+                                SearchPixel();
                                 if (stopwatch.ElapsedMilliseconds >= duration)
                                 {
                                     fishOpenTimes++;
@@ -373,7 +386,7 @@
                             if (currentPressBtn == "F3")
                             {
                                 currentPressBtn = "F4";
-                                currentQuantity = BaitBtnF4Qt;
+                                currentQuantity = TextBoxF4;
                                 keystroke = DirectXKeyStrokes.DIK_F4;
                             }
                             if (currentPressBtn == "F2")
@@ -397,7 +410,8 @@
                                     Logout();
                                 }
                                 else
-                                {
+                                {   
+                                    //probably out of all baits
                                     fishing = false;
                                     MessageBox.Show("No bait");
                                 }
@@ -418,11 +432,25 @@
             if (smallFishCounter >= rounds && Kishal)
             {
                 var smallFishCord = FishCoordInInventory("Resources/img/justFish.jpg", 0.7);
+                var garnelaCord = FishCoordInInventory("Resources/img/data/garnela.jpg", 8);
+                var ginyoCoord = FishCoordInInventory("Resources/img/data/Giliszta.png", 0.95);
 
                 //if there minifish search them again!
                 if (smallFishCord != null) //Comes from clickatfish
                 {
                     ClickOnFish(smallFishCord);
+                    smallFishCounter = 3;
+                }
+                else if (garnelaCord != null) 
+                {
+                    ClickOnFish(garnelaCord);
+                    smallFishCounter = 3;
+                }
+                //Try to search ginyó in the inventory
+                //search leftover bait in inventory
+                else if (ginyoCoord != null)
+                {
+                    ClickOnFish(ginyoCoord);
                     smallFishCounter = 3;
                 }
                 else
@@ -454,7 +482,7 @@
             Thread.Sleep(500);
         }
 
-        private void OpenFishesIfSelected()
+        private Task OpenFishesIfSelected()
         {
             int treshold = 30;
             Stopwatch stopwatch = new Stopwatch();
@@ -463,12 +491,18 @@
             {
                 {"Resources/img/data/sullo.png", Sullo},
                 {"Resources/img/data/fogas1.png", Fogas},
+                {"Resources/img/data/ponty.png", Ponty},
                 {"Resources/img/data/mandarinhal.png", Mandarinhal},
                 {"Resources/img/data/tenchi.png", Tenchi},
                 {"Resources/img/data/vorosszarnyu.png", Vorosszarnyu},
                 {"Resources/img/data/pisztrang.png", Pisztrang},
                 {"Resources/img/data/sebes.png", Sebes},
-                {"Resources/img/data/harcsa.png", Harcsa}
+                {"Resources/img/data/harcsa.png", Harcsa},
+                {"Resources/img/data/amur.png", Amur},
+                {"Resources/img/data/lazac.png", Lazac},
+                {"Resources/img/data/suger.png", Suger},
+                {"Resources/img/data/szivarvanyos.png", Szivarvanyos},
+                {"Resources/img/data/angolna.png", Angolna},
             };
 
             stopwatch.Start();
@@ -480,7 +514,23 @@
                     ushort[] hasCord = FishCoordInInventory(fish.Key);
                     //Checks the path
                     if (fish.Key.Contains("mandarinhal")) hasCord = FishCoordInInventory(fish.Key, 0.7);
-                    if (fish.Key.Contains("harcsa")) hasCord = FishCoordInInventory(fish.Key, 0.95);
+                    //if (fish.Key.Contains("harcsa")) hasCord = FishCoordInInventory(fish.Key, 0.90);
+                    if (fish.Key.Contains("fogas1") || 
+                        fish.Key.Contains("amur") || 
+                        fish.Key.Contains("suger1") ||
+                        fish.Key.Contains("angolna"))
+                    {
+                        hasCord = FishCoordInInventory(fish.Key, 0.8);
+                    }
+
+                    if (fish.Key.Contains("ponty") ||
+                        fish.Key.Contains("lazac")
+                        )
+                    {
+                        hasCord = FishCoordInInventory(fish.Key, 0.7);
+                    }
+
+                    if (fish.Key.Contains("sebes")) hasCord = FishCoordInInventory(fish.Key, 0.65);
 
                     if (hasCord != null)
                     {
@@ -500,6 +550,8 @@
                     }
                 }
             }
+            return Task.CompletedTask;
+
         }
 
         public void ClickOnFish(ushort[] coordinates)
@@ -515,13 +567,18 @@
             Thread thread1 = new Thread(
                 () =>
                 {
-                    coord = screenCapture.FindPicture(fishLocation, treshold, rectOfInventory);
+                     coord = screenCapture.FindPicture(fishLocation, treshold, rectOfInventory);
+
                     syncEvent.Set();
                 });
             thread1.Start();
             thread1.Join();
             thread1.Abort();
-
+            if (coord != null)
+            {
+                coord[0] += (ushort)notInventory.Width;
+                coord[1] += (ushort)notInventory.Height;
+            }
             return coord;
         }
 
@@ -815,6 +872,41 @@
             set { _harcsa = value; }
         }
 
+        private bool _lazac;
+        public bool Lazac
+        {
+            get { return _lazac; }
+            set { _lazac = value; }
+        }
+
+        private bool _amur;
+        public bool Amur
+        {
+            get { return _amur; }
+            set { _amur = value; }
+        }
+
+        private bool _suger;
+        public bool Suger
+        {
+            get { return _suger; }
+            set { _suger = value; }
+        }
+
+        private bool _szivarvanyos;
+        public bool Szivarvanyos
+        {
+            get { return _szivarvanyos; }
+            set { _szivarvanyos = value; }
+        }
+
+        private bool _angolna;
+        public bool Angolna
+        {
+            get { return _angolna; }
+            set { _angolna = value; }
+        }
+
         private bool _all;
 
         public bool IsCheckedAll
@@ -832,6 +924,11 @@
                 _pisztrang = value;
                 _sebes = value;
                 _harcsa = value;
+                _amur = value;
+                _lazac = value;
+                _suger = value;
+                _szivarvanyos = value;
+                _angolna = value;
             }
         }
 

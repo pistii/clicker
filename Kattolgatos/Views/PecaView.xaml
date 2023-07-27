@@ -248,6 +248,8 @@
                 </Style>
             </CheckBox.Style>
         </CheckBox>
+        
+        
         <CheckBox Content="All" x:Name="chkAll" IsChecked="{Binding Path=IsCheckedAll, Mode=TwoWay}"  Grid.Row="3" Grid.Column="0"  Grid.ColumnSpan="2"  Margin="190,0,0,0"/>
 
         <Button Name="ButtonSetRectangle" 

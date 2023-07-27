@@ -384,6 +384,22 @@
   <ItemGroup>
     <Resource Include="Resources\img\tor1.jpg" />
     <Resource Include="Resources\img\tor2.jpg" />
+    <None Include="Resources\img\data\amur.png" />
+    <None Include="Resources\img\data\lazac.png" />
+    <Resource Include="Resources\img\amur.png" />
+    <Resource Include="Resources\img\lazac.png" />
+    <Resource Include="Resources\img\Giliszta.png" />
+    <None Include="Resources\img\data\Giliszta.png" />
+    <None Include="Resources\img\data\suger.png" />
+    <Resource Include="Resources\img\suger.png" />
+    <Resource Include="Resources\img\data\suger1.png" />
+    <None Include="Resources\img\data\ponty1.png" />
+    <None Include="Resources\img\data\szivarvanyos.png" />
+    <None Include="Resources\img\data\angolna.png" />
+    <Resource Include="Resources\img\angolna.png" />
+    <Resource Include="Resources\img\szivarvanyos.png" />
+    <Resource Include="Resources\img\data\garnela.png" />
+    <Resource Include="Resources\img\garnela.png" />
     <Content Include="Resources\sound\alarm.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
