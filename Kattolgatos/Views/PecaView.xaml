@@ -262,11 +262,11 @@
 
         <Button 
                 Command = "{Binding OnButtonStartFishing}" 
-                Content="Start Fishing" 
+                Content="{Binding StartStopText,  Mode=TwoWay}" 
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center" 
                 Grid.Column="3" Grid.Row="5" 
-                Width="120" Height="30" Background="GreenYellow"
+                Width="120" Height="30" Background="{Binding StartStopBtn, Mode=TwoWay }"
                 />
 
     </Grid>
