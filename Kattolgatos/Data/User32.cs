@@ -35,6 +35,9 @@ namespace Kattolgatos.Data
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool LockWorkStation();
+
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {

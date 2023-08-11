@@ -36,6 +36,8 @@
     //read bait quantity by pic
     //bug with the overlay, doesn't exactly clicks into the rect size. Possible solution is to store at only one place 
     //delay
+    //event -> fishing start or fishing stop
+
     public class PecaViewmodel : ObservableObject
     {
         //PC-n 7 - 7 - 8 + 15 - 7 + 120
@@ -126,6 +128,7 @@
             //Hotkey to stop fishing
             HotkeyManager.Current.AddOrReplace("StopFishing", Keys.F8, StopFishing);
             HotkeyManager.Current.AddOrReplace("StartFishing", Keys.F9, StartFishing);
+            HotkeyManager.Current.AddOrReplace("ExitScreenLock", Keys.Escape, ExitScreenLock);
             OnButtonStartFishing = new RelayCommand(ButtonStartFishing);
             OnButtonSetRectangle = new RelayCommand(ButtonSetRectangle);
             screenCapture = new ScreenCapture();
@@ -135,7 +138,14 @@
             currentQuantity = TextBoxF1;
             startStopBtn = "GreenYellow";
             startStopText = "Start fishing";
+
         }
+
+        private void ExitScreenLock(object sender, HotkeyEventArgs e)
+        {
+            LockWorkStation();
+        }
+
 
         private void StopFishing(object sender, HotkeyEventArgs e)
         {
@@ -151,6 +161,7 @@
 
         private void ButtonSetRectangle()
         {
+            LockWorkStation();
             if (!overlay.IsRunning)
             {
                 overlay.IsRunning = true;
@@ -369,13 +380,13 @@
                         Thread.Sleep(250);
                     }
                     else
-                    {
+                    {   
                         StartToFish();
                         stopwatch.Start();
 
                         if (currentQuantity > 0)
                         {
-                            while (placedBaitAndStartedFishing)
+                            while (placedBaitAndStartedFishing && fishing)
                             {
                                 SearchPixel();
                                 if (stopwatch.ElapsedMilliseconds >= duration)
@@ -388,23 +399,26 @@
                         }
                         else
                         {
-                            if (currentPressBtn == "F3" && ChkBoxF4)
+                            if (currentPressBtn == "F3" && ChkBoxF4 || TextBoxF4 > 0 && ChkBoxF4)
                             {
                                 currentPressBtn = "F4";
                                 currentQuantity = TextBoxF4;
                                 keystroke = DirectXKeyStrokes.DIK_F4;
+                                return;
                             }
-                            if (currentPressBtn == "F2" && ChkBoxF3)
+                            if (currentPressBtn == "F2" && ChkBoxF3 || TextBoxF3 > 0 && ChkBoxF3)
                             {
                                 currentPressBtn = "F3";
                                 currentQuantity = TextBoxF3;
                                 keystroke = DirectXKeyStrokes.DIK_F3;
+                                return;
                             }
-                            if (currentPressBtn == "F1" && ChkBoxF2)
+                            if (currentPressBtn == "F1" && ChkBoxF2 || TextBoxF2 > 0 && ChkBoxF2)
                             {
                                 currentPressBtn = "F2";
                                 currentQuantity = TextBoxF2;
                                 keystroke = DirectXKeyStrokes.DIK_F2;
+                                return;
                             }
                             // no bait
                             else
@@ -424,7 +438,7 @@
                                 currentPressBtn = "F1";
                                 currentQuantity = TextBoxF1;
                                 keystroke = DirectXKeyStrokes.DIK_F1;
-                                
+
                             }
                         }
                     }
@@ -539,13 +553,12 @@
                         hasCord = FishCoordInInventory(fish.Key, 0.7);
                     }
 
-                    if (fish.Key.Contains("angolna"))
-                        hasCord = FishCoordInInventory(fish.Key, 0.65);
-                    if (fish.Key.Contains("sebes1") ||
+                    if (fish.Key.Contains("angolna") ||
+                        fish.Key.Contains("sebes1") ||
                         fish.Key.Contains("sebes2"))
-                        hasCord = FishCoordInInventory(fish.Key, 0.55);
-
-
+                    {
+                        hasCord = FishCoordInInventory(fish.Key, 0.65);
+                    }
                     if (hasCord != null)
                     {
                         int minValueX = hasCord[0] - treshold;
@@ -558,6 +571,10 @@
                             {
                                 coords.Add(hasCord);
                             }
+                        }
+                        if (fish.Key.Contains("angolna"))  //utolsó elem a listában
+                        {
+                            return Task.CompletedTask;
                         }
                         ClickOnFish(hasCord);
                     }
