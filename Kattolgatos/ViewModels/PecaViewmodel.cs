@@ -26,6 +26,8 @@
     using InputType = Data.User32.InputType;
     using System.Windows.Media.Media3D;
     using OpenCV.Net;
+    using Kattolgatos.ScreenShot;
+    using GameOverlay.Drawing;
 
     //TODO:
     //tip: hasonlítsa össze az élő halat a döglöttel hallal és ha az jobban stimmel akkor ne nyissa
@@ -47,9 +49,14 @@
         private static int rectBottom = (SystemInformation.VirtualScreen.Height / 8 + 100) + 115; // 500
         private RECT window_size = new RECT();
 
+        private int searchLeft;
+        private int searchTop;
+        private int searchRight;
+        private int searchBottom;
+
         //The rect displayed on the screen
         static GameOverlay.Drawing.Rectangle rectangle = new GameOverlay.Drawing.Rectangle(rectLeft, rectTop, rectRight, rectBottom);
-        private readonly RectangleOverlay overlay = new RectangleOverlay(rectangle);
+        private static readonly RectangleOverlay overlay = new RectangleOverlay(rectangle);
         private string fishColor = "#345E81";
         private int _ID;
         private int _delay = 0;
@@ -64,7 +71,7 @@
         Rectangle rectOfInventory;
         /// <summary>
         /// This is the middle playground area,
-        /// Doesn't have to check the this for opening fishes
+        /// Doesn't have to check this for opening fishes
         /// </summary>
         Rectangle notInventory;
 
@@ -141,6 +148,7 @@
 
         }
 
+        
         private void ExitScreenLock(object sender, HotkeyEventArgs e)
         {
             LockWorkStation();
@@ -161,21 +169,20 @@
 
         private void ButtonSetRectangle()
         {
-            LockWorkStation();
-            if (!overlay.IsRunning)
-            {
-                overlay.IsRunning = true;
-                overlay.Run();
-            }
 
-            if (!overlay._window.IsVisible)
-            {
-                overlay._window.IsVisible = true;
-            }
-            else
-            {
-                overlay._window.IsVisible = false;
-            }
+            SnippingTool.AreaSelected += OnAreaSelected;
+            SnippingTool.Snip();
+
+        }
+        public void OnAreaSelected(object sender, EventArgs e)
+        {
+            var bmp = SnippingTool.Image;
+            Point point = new Point();
+            GetCursorPos(ref point);
+            if (SearchLeft == 0) { SearchLeft = point.X-bmp.Width; }
+            SearchRight = point.X;
+            if (SearchTop == 0) { SearchTop = point.Y-bmp.Height; }
+            SearchBottom = point.Y;
         }
 
         private void ButtonStartFishing()
@@ -274,6 +281,7 @@
 
         private bool SearchPixel()
         {
+            //MessageBox.Show("Keresés", "left: " + SearchLeft + "right:" + SearchRight + "top:" + SearchTop + "searchbottom:" + SearchBottom);
             using (Bitmap bitmap = new Bitmap(550, 350)) //550, 350
             {
                 try
@@ -286,9 +294,9 @@
                         {
                             graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
                         }
-                        for (int x = (int)rectangle.Left; x < rectangle.Right; x++)
+                        for (int x = (int)SearchLeft; x < SearchRight; x++)
                         {
-                            for (int y = (int)rectangle.Top; y < rectangle.Bottom; y++)
+                            for (int y = (int)SearchTop; y < SearchBottom; y++)
                             {
                                 Color currentpixelcolor = bitmap.GetPixel(x, y);
                                 if (ColorsAreClose(currentpixelcolor, ColorTranslator.FromHtml(fishColor)))
@@ -316,12 +324,7 @@
             IntPtr h = p.MainWindowHandle;
             Stopwatch stopwatch = new Stopwatch();
             int fishOpenTimes = -1;
-            bool hasInventory = false;
-            int bottomPadding = 60; //the money and icons in the right left corner height in pixels
-            Rectangle inventorySize = new Rectangle() { //size in 768x1024
-                Width = 175,
-                Height = 345
-            };
+            
 
             //Run task in the background
             Task.Run(() =>
@@ -332,38 +335,7 @@
                 {
                     SetForegroundWindow(h);
                     Thread.Sleep(300);
-                    if (!hasInventory)
-                    {
-                        var d = GetWindowRect(h, out window_size);
-                        if (d) //if has size
-                        {
-                            rectOfInventory = new Rectangle()
-                            {
-                                X = window_size.Right - inventorySize.Width,
-                                Width = window_size.Right,
-                                Y = window_size.Bottom - bottomPadding - inventorySize.Height,
-                                Height = rectOfInventory.Y + inventorySize.Height,
-                            };
-                            notInventory = new Rectangle()
-                            {
-                                X = window_size.Left,
-                                Width = (ushort) (window_size.Right - inventorySize.Width),
-                                Y = window_size.Top,
-                                Height = window_size.Top + inventorySize.Top + inventorySize.Height
-                            };
-                            hasInventory = true;
-                        }
-                        else
-                        { //set search area fullscreen
-                            rectOfInventory = new Rectangle()
-                            {
-                                X = 0,
-                                Width = SystemInformation.VirtualScreen.Width,
-                                Y = 0,
-                                Height = SystemInformation.VirtualScreen.Height,
-                            };
-                        }
-                    }
+                    SetInventoryBounds();
                 }
                     if (fishOpenTimes <= -1 || fishOpenTimes >= 1)
                     {
@@ -399,21 +371,21 @@
                         }
                         else
                         {
-                            if (currentPressBtn == "F3" && ChkBoxF4 || TextBoxF4 > 0 && ChkBoxF4)
+                            if (currentPressBtn == "F3" && ChkBoxF4 && TextBoxF4 > 0)
                             {
                                 currentPressBtn = "F4";
                                 currentQuantity = TextBoxF4;
                                 keystroke = DirectXKeyStrokes.DIK_F4;
                                 return;
                             }
-                            if (currentPressBtn == "F2" && ChkBoxF3 || TextBoxF3 > 0 && ChkBoxF3)
+                            if (currentPressBtn == "F2" && ChkBoxF3 && TextBoxF3 > 0)
                             {
                                 currentPressBtn = "F3";
                                 currentQuantity = TextBoxF3;
                                 keystroke = DirectXKeyStrokes.DIK_F3;
                                 return;
                             }
-                            if (currentPressBtn == "F1" && ChkBoxF2 || TextBoxF2 > 0 && ChkBoxF2)
+                            if (currentPressBtn == "F1" && ChkBoxF2 && TextBoxF2 > 0)
                             {
                                 currentPressBtn = "F2";
                                 currentQuantity = TextBoxF2;
@@ -505,7 +477,53 @@
             SendKey(DirectXKeyStrokes.DIK_SPACE, true, InputType.Keyboard);
             Thread.Sleep(500);
         }
+        
+        bool hasInventory = false;
 
+        public void SetInventoryBounds()
+        {
+            int bottomPadding = 60; //the money and icons in the right left corner height in pixels
+            Rectangle inventorySize = new Rectangle()
+            { //size in 768x1024
+                Width = 175,
+                Height = 345
+            };
+            Process p = Process.GetProcessById(ID);
+            IntPtr h = p.MainWindowHandle;
+
+            if (!hasInventory)
+            {
+                var d = GetWindowRect(h, out window_size);
+                if (d) //if has size
+                {
+                    rectOfInventory = new Rectangle()
+                    {
+                        X = window_size.Right - inventorySize.Width,
+                        Width = window_size.Right,
+                        Y = window_size.Bottom - bottomPadding - inventorySize.Height,
+                        Height = rectOfInventory.Y + inventorySize.Height,
+                    };
+                    notInventory = new Rectangle()
+                    {
+                        X = window_size.Left,
+                        Width = (ushort)(window_size.Right - inventorySize.Width),
+                        Y = window_size.Top,
+                        Height = window_size.Top + inventorySize.Top + inventorySize.Height
+                    };
+                    hasInventory = true;
+                }
+                else
+                { //set search area fullscreen
+                    rectOfInventory = new Rectangle()
+                    {
+                        X = 0,
+                        Width = SystemInformation.VirtualScreen.Width,
+                        Y = 0,
+                        Height = SystemInformation.VirtualScreen.Height,
+                    };
+                }
+            }
+        }
         private Task OpenFishesIfSelected()
         {
             int treshold = 30;
@@ -1017,6 +1035,11 @@
                 SetProperty(ref startStopText, value);
             }
         }
+
+        public int SearchLeft { get => searchLeft; set => searchLeft = value; }
+        public int SearchTop { get => searchTop; set => searchTop = value; }
+        public int SearchRight { get => searchRight; set => searchRight = value; }
+        public int SearchBottom { get => searchBottom; set => searchBottom = value; }
     }
 
     

@@ -122,6 +122,9 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Overlay\OverlayExample.cs" />
+    <Compile Include="ScreenShot\SnippingTool.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ViewModels\EnergiaFarmViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\PecaViewmodel.cs" />
