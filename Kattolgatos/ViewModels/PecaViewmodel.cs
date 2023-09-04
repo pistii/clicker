@@ -29,17 +29,6 @@
     using Kattolgatos.ScreenShot;
     using GameOverlay.Drawing;
 
-    //TODO:
-    //tip: hasonlítsa össze az élő halat a döglöttel hallal és ha az jobban stimmel akkor ne nyissa
-    // check pm isn't working
-    // trade always plays sound
-    //play sound for a specific time
-    //possibility for fishing with fishbook
-    //read bait quantity by pic
-    //bug with the overlay, doesn't exactly clicks into the rect size. Possible solution is to store at only one place 
-    //delay
-    //event -> fishing start or fishing stop
-
     public class PecaViewmodel : ObservableObject
     {
         //PC-n 7 - 7 - 8 + 15 - 7 + 120
@@ -135,7 +124,6 @@
             //Hotkey to stop fishing
             HotkeyManager.Current.AddOrReplace("StopFishing", Keys.F8, StopFishing);
             HotkeyManager.Current.AddOrReplace("StartFishing", Keys.F9, StartFishing);
-            HotkeyManager.Current.AddOrReplace("ExitScreenLock", Keys.Escape, ExitScreenLock);
             OnButtonStartFishing = new RelayCommand(ButtonStartFishing);
             OnButtonSetRectangle = new RelayCommand(ButtonSetRectangle);
             screenCapture = new ScreenCapture();
@@ -145,13 +133,6 @@
             currentQuantity = TextBoxF1;
             startStopBtn = "GreenYellow";
             startStopText = "Start fishing";
-
-        }
-
-        
-        private void ExitScreenLock(object sender, HotkeyEventArgs e)
-        {
-            LockWorkStation();
         }
 
 
@@ -281,7 +262,6 @@
 
         private bool SearchPixel()
         {
-            //MessageBox.Show("Keresés", "left: " + SearchLeft + "right:" + SearchRight + "top:" + SearchTop + "searchbottom:" + SearchBottom);
             using (Bitmap bitmap = new Bitmap(550, 350)) //550, 350
             {
                 try
@@ -371,26 +351,23 @@
                         }
                         else
                         {
-                            if (currentPressBtn == "F3" && ChkBoxF4 && TextBoxF4 > 0)
+                            if (currentPressBtn == "F3" && ChkBoxF4)
                             {
                                 currentPressBtn = "F4";
                                 currentQuantity = TextBoxF4;
                                 keystroke = DirectXKeyStrokes.DIK_F4;
-                                return;
                             }
-                            if (currentPressBtn == "F2" && ChkBoxF3 && TextBoxF3 > 0)
+                            if (currentPressBtn == "F2" && ChkBoxF3 )
                             {
                                 currentPressBtn = "F3";
                                 currentQuantity = TextBoxF3;
                                 keystroke = DirectXKeyStrokes.DIK_F3;
-                                return;
                             }
-                            if (currentPressBtn == "F1" && ChkBoxF2 && TextBoxF2 > 0)
+                            if (currentPressBtn == "F1" && ChkBoxF2 )
                             {
                                 currentPressBtn = "F2";
                                 currentQuantity = TextBoxF2;
                                 keystroke = DirectXKeyStrokes.DIK_F2;
-                                return;
                             }
                             // no bait
                             else
