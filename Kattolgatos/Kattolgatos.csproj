@@ -403,7 +403,7 @@
     </None>
     <Resource Include="Resources\img\angolna.png" />
     <Resource Include="Resources\img\szivarvanyos.png" />
-    <Resource Include="Resources\img\data\garnela.png" />
+    <None Include="Resources\img\data\garnela.png" />
     <Resource Include="Resources\img\garnela.png" />
     <Resource Include="Resources\img\sebes1.png" />
     <None Include="Resources\img\data\sebes1.png">
@@ -411,6 +411,14 @@
     </None>
     <None Include="Resources\img\data\Giliszta1.png" />
     <None Include="Resources\img\data\sebes2.png" />
+    <Resource Include="Resources\img\deadshiri.png" />
+    <None Include="Resources\img\data\deadshiri.png" />
+    <None Include="Resources\img\data\garnela1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\img\letter.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Content Include="Resources\sound\alarm.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

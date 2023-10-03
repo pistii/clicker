@@ -28,6 +28,9 @@
     using OpenCV.Net;
     using Kattolgatos.ScreenShot;
     using GameOverlay.Drawing;
+    using System.Linq;
+    using Kattolgatos.Properties;
+    using System.Windows.Markup;
 
     public class PecaViewmodel : ObservableObject
     {
@@ -38,10 +41,10 @@
         private static int rectBottom = (SystemInformation.VirtualScreen.Height / 8 + 100) + 115; // 500
         private RECT window_size = new RECT();
 
-        private int searchLeft;
-        private int searchTop;
-        private int searchRight;
-        private int searchBottom;
+        private int searchLeft = 250;
+        private int searchTop = 188;
+        private int searchRight = 113;
+        private int searchBottom = 116;
 
         //The rect displayed on the screen
         static GameOverlay.Drawing.Rectangle rectangle = new GameOverlay.Drawing.Rectangle(rectLeft, rectTop, rectRight, rectBottom);
@@ -150,10 +153,8 @@
 
         private void ButtonSetRectangle()
         {
-
             SnippingTool.AreaSelected += OnAreaSelected;
             SnippingTool.Snip();
-
         }
         public void OnAreaSelected(object sender, EventArgs e)
         {
@@ -177,6 +178,7 @@
 
         private void StopFishing()
         {
+            StopWav();
             StartStopBtn = "GreenYellow";
             StartStopText = "Start fishing";
             fishing = false;
@@ -320,8 +322,8 @@
                     if (fishOpenTimes <= -1 || fishOpenTimes >= 1)
                     {
                         Task.WaitAll(OpenFishesIfSelected());
-                        if (PMChkBox) CheckPM(); // Alerts
-                        if (ChkTrade) //CheckTrade(); //Alerts
+                        if (PMChkBox) CheckPM();
+                        if (ChkTrade) CheckTrade();
                         fishOpenTimes = 0;
                     }
 
@@ -351,43 +353,50 @@
                         }
                         else
                         {
-                            if (currentPressBtn == "F3" && ChkBoxF4)
+                            List<bool> checkboxes = new List<bool>() { ChkBoxF1, ChkBoxF2, ChkBoxF3, ChkBoxF4};
+                            int trueCount = checkboxes.Count(b => b == true);
+                            for (int i = 0; i < trueCount; i++)
                             {
-                                currentPressBtn = "F4";
-                                currentQuantity = TextBoxF4;
-                                keystroke = DirectXKeyStrokes.DIK_F4;
-                            }
-                            if (currentPressBtn == "F2" && ChkBoxF3 )
-                            {
-                                currentPressBtn = "F3";
-                                currentQuantity = TextBoxF3;
-                                keystroke = DirectXKeyStrokes.DIK_F3;
-                            }
-                            if (currentPressBtn == "F1" && ChkBoxF2 )
-                            {
-                                currentPressBtn = "F2";
-                                currentQuantity = TextBoxF2;
-                                keystroke = DirectXKeyStrokes.DIK_F2;
-                            }
-                            // no bait
-                            else
-                            {
-                                if (CheckLogout)
+                                if (currentPressBtn == "F3" && ChkBoxF4)
                                 {
-                                    Thread.Sleep(20000);
-                                    Logout();
-                                    StopFishing();
+                                    currentPressBtn = "F4";
+                                    currentQuantity = TextBoxF4;
+                                    keystroke = DirectXKeyStrokes.DIK_F4;
+                                    break;
                                 }
+                                if (currentPressBtn == "F2" && ChkBoxF3)
+                                {
+                                    currentPressBtn = "F3";
+                                    currentQuantity = TextBoxF3;
+                                    keystroke = DirectXKeyStrokes.DIK_F3;
+                                    break;
+                                }
+                                if (currentPressBtn == "F1" && ChkBoxF2)
+                                {
+                                    currentPressBtn = "F2";
+                                    currentQuantity = TextBoxF2;
+                                    keystroke = DirectXKeyStrokes.DIK_F2;
+                                    break;
+                                }
+                                // no bait
                                 else
                                 {
-                                    //probably out of all baits
-                                    StopFishing();
-                                    MessageBox.Show("No bait");
+                                    if (CheckLogout)
+                                    {
+                                        Thread.Sleep(20000);
+                                        Logout();
+                                        StopFishing();
+                                    }
+                                    else
+                                    {
+                                        //probably out of all baits
+                                        StopFishing();
+                                        MessageBox.Show("No bait");
+                                    }
+                                    currentPressBtn = "F1";
+                                    currentQuantity = TextBoxF1;
+                                    keystroke = DirectXKeyStrokes.DIK_F1;
                                 }
-                                currentPressBtn = "F1";
-                                currentQuantity = TextBoxF1;
-                                keystroke = DirectXKeyStrokes.DIK_F1;
-
                             }
                         }
                     }
@@ -401,31 +410,20 @@
             if (fishBait_qt >= rounds && Kishal)
             {
                 var smallFishCord = FishCoordInInventory("Resources/img/justFish.jpg", 0.7);
-                var garnelaCord = FishCoordInInventory("Resources/img/data/garnela.jpg", 8);
-                bool clicked = false;
-
+                var garnelaCord = FishCoordInInventory("Resources/img/data/garnela.png", 6);
+                
                 //if there minifish search them again!
-                if (smallFishCord != null || 
-                    garnelaCord != null) //Comes from clickatfish
+                if (garnelaCord != null && smallFishCord == null) //Comes from clickatfish
                 {
-                    if (smallFishCord != null && !clicked)
-                    {
-                        ClickOnFish(smallFishCord);
-                        fishBait_qt = 3;
-                        clicked = true;
-                        return;
-                    } else
-                    {
-                        if (garnelaCord != null && !clicked)
-                        {
-                            ClickOnFish(garnelaCord);
-                            fishBait_qt = 3;
-                            clicked = true;
-                            return;
-                        }
-                    }
+                    ClickOnFish(garnelaCord);
+                    fishBait_qt = 3;
+                } 
+                else if (smallFishCord != null && garnelaCord == null)
+                {
+                    ClickOnFish(smallFishCord);
+                    fishBait_qt = 3;
                 }
-                else
+                else if (garnelaCord == null && smallFishCord == null)
                 {
                     fishBait_qt = 0;
                     currentQuantity--;
@@ -522,6 +520,7 @@
                 {"Resources/img/data/lazac.png", Lazac},
                 {"Resources/img/data/suger.png", Suger},
                 {"Resources/img/data/szivarvanyos.png", Szivarvanyos},
+                {"Resources/img/data/deadshiri.png", Shiri},
                 {"Resources/img/data/angolna.png", Angolna},
             };
 
@@ -529,51 +528,56 @@
             coords.Clear();
             foreach (var fish in dict)
             {
-                if (fish.Value)
+                ushort[] hasCord = FishCoordInInventory(fish.Key);
+                //Checks the path
+                if (fish.Key.Contains("fogas1") || 
+                    fish.Key.Contains("amur") || 
+                    fish.Key.Contains("suger1"))
                 {
-                    ushort[] hasCord = FishCoordInInventory(fish.Key);
-                    //Checks the path
-                    if (fish.Key.Contains("fogas1") || 
-                        fish.Key.Contains("amur") || 
-                        fish.Key.Contains("suger1"))
-                    {
-                        hasCord = FishCoordInInventory(fish.Key, 0.8);
-                    }
-
-                    if (fish.Key.Contains("ponty") ||
-                        fish.Key.Contains("lazac") ||
-                        fish.Key.Contains("mandarinhal")
-                        )
-                    {
-                        hasCord = FishCoordInInventory(fish.Key, 0.7);
-                    }
-
-                    if (fish.Key.Contains("angolna") ||
-                        fish.Key.Contains("sebes1") ||
-                        fish.Key.Contains("sebes2"))
-                    {
-                        hasCord = FishCoordInInventory(fish.Key, 0.65);
-                    }
-                    if (hasCord != null)
-                    {
-                        int minValueX = hasCord[0] - treshold;
-                        int maxValueX = hasCord[0] + treshold;
-                        int minValueY = hasCord[1] - treshold;
-                        int maxValueY = hasCord[1] + treshold;
-                        if (!coords.Contains(hasCord))
-                        {
-                            if (minValueX <= hasCord[0] && maxValueX >= hasCord[0] && minValueY <= hasCord[1] && maxValueY >= hasCord[1])
-                            {
-                                coords.Add(hasCord);
-                            }
-                        }
-                        if (fish.Key.Contains("angolna"))  //utolsó elem a listában
-                        {
-                            return Task.CompletedTask;
-                        }
-                        ClickOnFish(hasCord);
-                    }
+                    hasCord = FishCoordInInventory(fish.Key, 0.8);
                 }
+
+                if (fish.Key.Contains("ponty") ||
+                    fish.Key.Contains("sebes1") ||
+                    fish.Key.Contains("pisztrang")
+                    )
+                {
+                    hasCord = FishCoordInInventory(fish.Key, 0.72);
+                    //MessageBox.Show("Halacska neve:" + fish.Key.ToString());
+                }
+
+                if (fish.Key.Contains("lazac") ||
+                    fish.Key.Contains("mandarinhal")
+                    )
+                {
+                    hasCord = FishCoordInInventory(fish.Key, 0.7);
+                }
+
+                if (fish.Key.Contains("angolna") ||
+                    fish.Key.Contains("sebes2"))
+                {
+                    hasCord = FishCoordInInventory(fish.Key, 0.65);
+                }
+                if (hasCord != null)
+                {
+                    int minValueX = hasCord[0] - treshold;
+                    int maxValueX = hasCord[0] + treshold;
+                    int minValueY = hasCord[1] - treshold;
+                    int maxValueY = hasCord[1] + treshold;
+                    if (!coords.Contains(hasCord))
+                    {
+                        if (minValueX <= hasCord[0] && maxValueX >= hasCord[0] && minValueY <= hasCord[1] && maxValueY >= hasCord[1])
+                        {
+                            coords.Add(hasCord);
+                        }
+                    }
+                    if (fish.Key.Contains("angolna"))  //utolsó elem a listában
+                    {
+                        return Task.CompletedTask;
+                    }
+                    ClickOnFish(hasCord);
+                }
+                
             }
             return Task.CompletedTask;
         }
@@ -606,7 +610,7 @@
             return coord;
         }
 
-    private void AlertMe()
+        private void AlertMe()
         {
             PlayWav(Properties.Resources.alarm, true);
         }
@@ -618,14 +622,6 @@
         // play the indicated WAV file.
         private void PlayWav(Stream stream, bool play_looping)
         {
-            // Stop the player if it is running.
-            if (Player != null)
-            {
-                Player.Stop();
-                Player.Dispose();
-                Player = null;
-            }
-
             // If we have no stream, we're done.
             if (stream == null) return;
 
@@ -639,44 +635,102 @@
                 Player.Play();
         }
 
+        private void StopWav()
+        {
+            // Stop the player if it is running.
+            if (Player != null)
+            {
+                Player.Stop();
+                Player.Dispose();
+                Player = null;
+            }
+        }
 
         private void CheckPM()
         {
-            Point msgLoc;
-            if (window_size.Right < 1030 && window_size.Bottom < 800)
-            {
-                msgLoc = new Point((int)(window_size.Right/1.05), (int)(window_size.Bottom/3.22)); // X = fullwidth / 1.05 || Y = fullheight / 3.22
-            }
-            else
-            {
-                msgLoc = new Point((int)(window_size.Right / 1.04), (int)(window_size.Bottom / 3.2));
-            }
+            #region coordinates
+            //Még hasznos lehet...
+            //X     Y       x1      x2      y1  y2
+            //800   624     737     763     199 224
+            //1024    768   960     980     222 244
+            //1280    960   1215    1236    276 300
+            //1360    768   1294    1316    222 243
+            //1920    1080  1853    1877    312 331
+            //2560    1440  2494    2518    394 417
 
-            Color color = Color.FromArgb(246, 244, 247);
-            if (ColorsAreClose(color, GetColorAt(msgLoc), 3))
+            //X1	X2	Y1	Y2
+            //63  37  425   400
+            //64  44  546   524
+            //65  44  684   660
+            //66  44  546   525
+            //67  43  768   749
+            //66  42  1046  1023
+            #endregion 
+            Rectangle rectangle = new Rectangle()
+            {
+                X = window_size.Right - 70, //Levél első lehetséges X tengely kordinátája
+            Width = window_size.Right - 45,  //levél szélessége az X tengelyen
+                Y = 180, //Y első kordinátája 800x624-es felbontásban
+                Height = 420 //Y utolsó kordinátája 2560x1440 felbontásban
+            };
+            if (screenCapture.FindPicture("Resources/img/letter.png", 0.95, rectangle) != null)
             {
                 AlertMe();
             }
         }
 
-        bool gotColor = false;
-        Color colorbeforeTrade;
-        Point tradeLocation = new Point(665, 437);
-
+        /// <summary>
+        /// Checks if the trade window is open. Works statically, meaning it detects if opened on the default location
+        /// </summary>
         private void CheckTrade()
         {
-            //Read the color
-            if (!gotColor)
+            #region coordinates
+            //X	    Y		x1	x2	y1	y2
+            //800     624     257 540 208 390
+            //1024    768     370 653 294 476
+            //1280    960     497 783 390 570
+            //1360    768     537 822 294 472
+            //1920    1080    819 1100 448 630
+            //2560    1440    1139 1422 597 777
+            //Where X and Y are screen resolution, x1, y1 window start location, x2, y2 window end location
+            
+            #endregion
+            int tradeWindowWidth = 280, tradeWindowHeight = 180;
+            string colorToFind = "#191919";
+
+            int totalFound = 0;
+            int totalPixel = 0;
+            using (Bitmap bitmap = new Bitmap(window_size.Right / 2 + tradeWindowWidth / 2, window_size.Bottom / 2 + tradeWindowHeight / 2))
             {
-                colorbeforeTrade = GetColorAt(tradeLocation);
-                gotColor = true;
-            }
-            else //compare the two color
-            {
-                Color colorAfterTrade = GetColorAt(tradeLocation);
-                if (!ColorsAreClose(colorbeforeTrade, colorAfterTrade, 14))
+                using (Graphics graphics = Graphics.FromImage(bitmap))
                 {
-                    AlertMe();
+                    graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
+                    for (int x = bitmap.Width - tradeWindowWidth; x < bitmap.Width; x++)
+                    {
+                        for (int y = 0; y < 3; y++) {
+                            Color color = bitmap.GetPixel(x, bitmap.Height - 140+y);
+                            if (ColorsAreClose(color, ColorTranslator.FromHtml(colorToFind), 20))
+                            {
+                                totalFound++;
+                            }
+                            totalPixel++;
+                            //bitmap.SetPixel(x, y+bitmap.Height - 142, Color.Blue);
+                        }
+                    }
+                    //bitmap.Save("savedImage.png");
+                    try
+                    {
+                        //int t = (totalPixel / totalFound);
+
+                        //MessageBox.Show("TotalPixel: " + totalPixel.ToString() + "pixelfound:" + totalFound.ToString() + "osztott:" + t.ToString());
+                        if ((totalPixel / totalFound) <= 3)
+                        {
+                            AlertMe();
+                        }
+                    } catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
                 }
             }
         }
@@ -917,6 +971,13 @@
         {
             get { return _amur; }
             set { _amur = value; }
+        }
+
+        private bool _shiri;
+        public bool Shiri
+        {
+            get { return _shiri; }
+            set { _shiri = value; }
         }
 
         private bool _suger;
